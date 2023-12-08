@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+<script src='asyncReq.js'></script>
+<script>
+function updateChart() {
+            const chartData = {
+                labels: "Steps",
+                datasets: [{
+                    label: 'Steps',
+                    showLine: true,
+                    pointBackgroundColor: 'rgba(255, 0, 0, 1)',
+                    data: stepsData
+}]
+};
+            const ctx = document.getElementById('quaternion-chart').getContext('2d');
+            const config = {
+                type: 'line',
+                data: chartData,
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom'
+                        },
+                        y: {
+                            min: -1,
+                            max: 1
+                        }
+                    }
+                }
+            };
+
+            // Destroy the existing chart and create a new one
+            if (window.quaternionChart) {
+                window.quaternionChart.destroy();
+            }
+            window.quaternionChart = new Chart(ctx, config);
+        };
+// Function to detect steps from quaternion data
+function detectSteps() {
+
+            var quaternion;
+
+            loadURL("./getData", function(data){
+    quaternion = data; });
+
+            // Add the latest quaternion data to the quaternion dataset 
+            const accelerometerData = {
+                x: quaternion.x,
+                y: quaternion.y,
+                z: quaternion.z,
+            };
+
+
+
+            // Calculate the magnitude of the acceleration vector
+            const accelerationMagnitude = Math.sqrt(
+                Math.pow(accelerometerData.x, 2) +
+                Math.pow(accelerometerData.y, 2) +
+                Math.pow(accelerometerData.z, 2)
+            );
+
+            const stepThreshold = 1.5; 
+            if (accelerationMagnitude > stepThreshold) {
+                const lastDataPointIndex = quaternionData.length - 1;
+                stepsData.push({
+                    x: lastDataPointIndex + 1,
+                    y: quaternionData[lastDataPointIndex].w, 
+                });
+                updateChart(); // Update the chart immediately when a step is detected
+            }
+        }
+// Function to start the app
+function start() {
+          setInterval(detectSteps, 1000);
+        }
+</script>
+</head>
+<body onload='start()'>
+<h1> Accel Data </h1>
+<div id='results'> </div>
+
+<canvas id="quaternion-chart"></canvas>
+
+</body>
+</html>
